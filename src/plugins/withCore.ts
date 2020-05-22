@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-import { useGetLatest, makeRenderer } from '../utils'
+import { useGetLatest, makeRenderer } from '../utils';
 
 export const withCore = {
   name: 'withCore',
@@ -10,37 +10,37 @@ export const withCore = {
   decorateRow,
   decorateCell,
   useInstanceAfterDataModel,
-}
+};
 
 function useInstanceAfterState(instance) {
-  const getInstance = useGetLatest(instance)
+  const getInstance = useGetLatest(instance);
 
   instance.reset = React.useCallback(() => {
-    const { setState, getInitialState } = instance
+    const { setState, getInitialState } = instance;
     setState(getInitialState(), {
       type: 'reset',
-    })
-  }, [instance])
+    });
+  }, [instance]);
 
   instance.getColumnWidth = React.useCallback(
     columnId => {
-      const column = getInstance().leafColumns.find(d => d.id === columnId)
+      const column = getInstance().leafColumns.find(d => d.id === columnId);
 
       if (!column) {
-        return
+        return;
       }
 
-      return Math.min(Math.max(column.minWidth, column.width), column.maxWidth)
+      return Math.min(Math.max(column.minWidth, column.width), column.maxWidth);
     },
     [getInstance]
-  )
+  );
 
   instance.getTotalWidth = React.useCallback(() => {
     return getInstance().leafColumns.reduce(
       (sum, column) => sum + column.getWidth(),
       0
-    )
-  }, [getInstance])
+    );
+  }, [getInstance]);
 }
 
 function decorateHeader(header, { getInstance }) {
@@ -48,7 +48,7 @@ function decorateHeader(header, { getInstance }) {
     ? () => null
     : makeRenderer(getInstance, {
         column: header.column,
-      })
+      });
 
   // Give columns/headers a default getHeaderProps
   header.getHeaderProps = (props = {}) =>
@@ -58,7 +58,7 @@ function decorateHeader(header, { getInstance }) {
         ...props,
       },
       { getInstance, header }
-    )
+    );
 
   // Give columns/headers a default getFooterProps
   header.getFooterProps = (props = {}) =>
@@ -71,23 +71,23 @@ function decorateHeader(header, { getInstance }) {
         getInstance,
         header,
       }
-    )
+    );
 
   header.getWidth = () => {
-    let sum = 0
+    let sum = 0;
 
     const recurse = header => {
       if (header.subHeaders?.length) {
-        header.subHeaders.forEach(recurse)
+        header.subHeaders.forEach(recurse);
       } else {
-        sum += header.column.getWidth()
+        sum += header.column.getWidth();
       }
-    }
+    };
 
-    recurse(header)
+    recurse(header);
 
-    return sum
-  }
+    return sum;
+  };
 }
 
 function decorateRow(row, { getInstance }) {
@@ -95,7 +95,7 @@ function decorateRow(row, { getInstance }) {
     getInstance().plugs.reduceRowProps(
       { role: 'row', ...props },
       { getInstance, row }
-    )
+    );
 }
 
 function decorateCell(cell, { getInstance }) {
@@ -109,23 +109,23 @@ function decorateCell(cell, { getInstance }) {
         getInstance,
         cell,
       }
-    )
+    );
 }
 
 function useInstanceAfterDataModel(instance) {
-  const getInstance = useGetLatest(instance)
+  const getInstance = useGetLatest(instance);
   instance.getTableHeadProps = (props = {}) =>
-    getInstance().plugs.reduceTableHeadProps({ ...props }, { getInstance })
+    getInstance().plugs.reduceTableHeadProps({ ...props }, { getInstance });
   instance.getTableFooterProps = (props = {}) =>
-    getInstance().plugs.reduceTableFooterProps({ ...props }, { getInstance })
+    getInstance().plugs.reduceTableFooterProps({ ...props }, { getInstance });
   instance.getTableBodyProps = (props = {}) =>
     getInstance().plugs.reduceTableBodyProps(
       { role: 'rowgroup', ...props },
       { getInstance }
-    )
+    );
   instance.getTableProps = (props = {}) =>
     getInstance().plugs.reduceTableProps(
       { role: 'table', ...props },
       { getInstance }
-    )
+    );
 }

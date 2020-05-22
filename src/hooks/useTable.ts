@@ -1,16 +1,16 @@
-import React from 'react'
+import React from 'react';
 
 //
 
-import { composeDecorator, composeReducer } from '../utils'
+import { composeDecorator, composeReducer } from '../utils';
 
-import useTableOptions from './useTableOptions'
-import useTableState from './useTableState'
-import useColumns from './useColumns'
-import useHeadersAndFooters from './useHeadersAndFooters'
-import useDataModel from './useDataModel'
+import useTableOptions from './useTableOptions';
+import useTableState from './useTableState';
+import useColumns from './useColumns';
+import useHeadersAndFooters from './useHeadersAndFooters';
+import useDataModel from './useDataModel';
 
-import { withCore } from '../plugins/withCore'
+import { withCore } from '../plugins/withCore';
 
 //
 
@@ -37,32 +37,32 @@ const plugTypes = [
   ['reduceHeaderProps', composeReducer],
   ['reduceRowProps', composeReducer],
   ['reduceCellProps', composeReducer],
-]
+];
 
 export const useTable = options => {
-  const instanceRef = React.useRef()
+  const instanceRef = React.useRef();
 
   // Create and keep track of the table instance
   if (!instanceRef.current) {
-    instanceRef.current = {}
+    instanceRef.current = {};
   }
-  const instance = instanceRef.current
+  const instance = instanceRef.current;
 
-  const userPlugins = options.plugins.filter(Boolean)
+  const userPlugins = options.plugins.filter(Boolean);
 
   userPlugins.sort((a, b) => {
     if (a.after.includes(b.name) || a.after.length > b.after.length) {
-      return 1
+      return 1;
     }
     if (b.after.includes(a.name) || b.after.length > a.after.length) {
-      return -1
+      return -1;
     }
-    return 0
-  })
+    return 0;
+  });
 
-  const allPlugins = [withCore, ...userPlugins]
+  const allPlugins = [withCore, ...userPlugins];
 
-  instance.plugs = {}
+  instance.plugs = {};
 
   if (process.env.NODE_ENV !== 'production') {
     allPlugins.forEach(plugin => {
@@ -74,10 +74,10 @@ export const useTable = options => {
         ) {
           throw new Error(
             `Unknown plug "${plugName}" found in plugin "${plugin.name}"`
-          )
+          );
         }
-      })
-    })
+      });
+    });
   }
 
   plugTypes.forEach(([plugType, compositionFn]) => {
@@ -93,35 +93,35 @@ export const useTable = options => {
       // sort for optional after deps
       .sort((a, b) => {
         if (a.after.includes(b.name) || a.after.length > b.after.length) {
-          return 1
+          return 1;
         }
         if (b.after.includes(a.name) || b.after.length > a.after.length) {
-          return -1
+          return -1;
         }
-        return 0
+        return 0;
       })
       // map back to the plug functions
-      .map(d => d.plug)
+      .map(d => d.plug);
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
     instance.plugs[plugType] = React.useCallback(
       compositionFn(...pluginPlugs),
       pluginPlugs
-    )
-  })
+    );
+  });
 
   // Apply the defaults to our options
-  instance.options = useTableOptions(options, instance)
+  instance.options = useTableOptions(options, instance);
 
-  useTableState(instance)
+  useTableState(instance);
 
-  instance.plugs.useInstanceAfterState(instance)
+  instance.plugs.useInstanceAfterState(instance);
 
-  useColumns(instance)
-  useHeadersAndFooters(instance)
-  useDataModel(instance)
+  useColumns(instance);
+  useHeadersAndFooters(instance);
+  useDataModel(instance);
 
-  instance.plugs.useInstanceAfterDataModel(instance)
+  instance.plugs.useInstanceAfterDataModel(instance);
 
-  return instance
-}
+  return instance;
+};

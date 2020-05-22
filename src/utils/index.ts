@@ -1,32 +1,32 @@
-import React from 'react'
+import React from 'react';
 
 export function functionalUpdate(updater, old) {
-  return typeof updater === 'function' ? updater(old) : updater
+  return typeof updater === 'function' ? updater(old) : updater;
 }
 
 export function noop() {}
 
 export function useGetLatest(obj) {
-  const ref = React.useRef()
-  ref.current = obj
+  const ref = React.useRef();
+  ref.current = obj;
 
-  return React.useCallback(() => ref.current, [])
+  return React.useCallback(() => ref.current, []);
 }
 
 // SSR has issues with useLayoutEffect still, so use useEffect during SSR
 export const safeUseLayoutEffect =
-  typeof document !== 'undefined' ? React.useLayoutEffect : React.useEffect
+  typeof document !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
 export function useMountedLayoutEffect(fn, deps) {
-  const mountedRef = React.useRef(false)
+  const mountedRef = React.useRef(false);
 
   safeUseLayoutEffect(() => {
     if (mountedRef.current) {
-      fn()
+      fn();
     }
-    mountedRef.current = true
+    mountedRef.current = true;
     // eslint-disable-next-line
-  }, deps)
+  }, deps);
 }
 
 export function makeRenderer(getInstance, meta = {}) {
@@ -35,12 +35,12 @@ export function makeRenderer(getInstance, meta = {}) {
       tableInstance: getInstance(),
       ...meta,
       ...userProps,
-    })
-  }
+    });
+  };
 }
 
 export function flexRender(Comp, props) {
-  return isReactComponent(Comp) ? <Comp {...props} /> : Comp
+  return isReactComponent(Comp) ? <Comp {...props} /> : Comp;
 }
 
 function isReactComponent(component) {
@@ -48,17 +48,17 @@ function isReactComponent(component) {
     isClassComponent(component) ||
     typeof component === 'function' ||
     isExoticComponent(component)
-  )
+  );
 }
 
 function isClassComponent(component) {
   return (
     typeof component === 'function' &&
     (() => {
-      const proto = Object.getPrototypeOf(component)
-      return proto.prototype && proto.prototype.isReactComponent
+      const proto = Object.getPrototypeOf(component);
+      return proto.prototype && proto.prototype.isReactComponent;
     })()
-  )
+  );
 }
 
 function isExoticComponent(component) {
@@ -66,53 +66,53 @@ function isExoticComponent(component) {
     typeof component === 'object' &&
     typeof component.$$typeof === 'symbol' &&
     ['react.memo', 'react.forward_ref'].includes(component.$$typeof.description)
-  )
+  );
 }
 
 export function flattenColumns(columns, includeParents) {
-  return flattenBy(columns, 'columns', includeParents)
+  return flattenBy(columns, 'columns', includeParents);
 }
 
 export function getFirstDefined(...args) {
   for (let i = 0; i < args.length; i += 1) {
     if (typeof args[i] !== 'undefined') {
-      return args[i]
+      return args[i];
     }
   }
 }
 
 export function isFunction(a) {
   if (typeof a === 'function') {
-    return a
+    return a;
   }
 }
 
 export function flattenBy(arr, key, includeParents) {
-  const flat = []
+  const flat = [];
 
   const recurse = arr => {
     arr.forEach(d => {
       if (d[key] && d[key].length) {
         if (includeParents) {
-          flat.push(d)
+          flat.push(d);
         }
-        recurse(d[key])
+        recurse(d[key]);
       } else {
-        flat.push(d)
+        flat.push(d);
       }
-    })
-  }
+    });
+  };
 
-  recurse(arr)
+  recurse(arr);
 
-  return flat
+  return flat;
 }
 
 export function expandRows(rows, getInstance) {
-  const expandedRows = []
+  const expandedRows = [];
 
   const handleRow = row => {
-    expandedRows.push(row)
+    expandedRows.push(row);
 
     if (
       getInstance().options.expandSubRows &&
@@ -120,144 +120,144 @@ export function expandRows(rows, getInstance) {
       row.subRows.length &&
       row.getIsExpanded()
     ) {
-      row.subRows.forEach(handleRow)
+      row.subRows.forEach(handleRow);
     }
-  }
+  };
 
-  rows.forEach(handleRow)
+  rows.forEach(handleRow);
 
-  return expandedRows
+  return expandedRows;
 }
 
 export function getFilterMethod(filter, userFilterTypes, filterTypes) {
-  return isFunction(filter) || userFilterTypes[filter] || filterTypes[filter]
+  return isFunction(filter) || userFilterTypes[filter] || filterTypes[filter];
 }
 
 export function shouldAutoRemoveFilter(autoRemove, value, column) {
-  return autoRemove ? autoRemove(value, column) : typeof value === 'undefined'
+  return autoRemove ? autoRemove(value, column) : typeof value === 'undefined';
 }
 
 export function groupBy(rows, columnId) {
   return rows.reduce((prev, row, i) => {
-    const resKey = `${row.values[columnId]}`
-    prev[resKey] = Array.isArray(prev[resKey]) ? prev[resKey] : []
-    prev[resKey].push(row)
-    return prev
-  }, {})
+    const resKey = `${row.values[columnId]}`;
+    prev[resKey] = Array.isArray(prev[resKey]) ? prev[resKey] : [];
+    prev[resKey].push(row);
+    return prev;
+  }, {});
 }
 
 export function orderBy(arr, funcs, dirs) {
   return [...arr].sort((rowA, rowB) => {
     for (let i = 0; i < funcs.length; i += 1) {
-      const sortFn = funcs[i]
-      const desc = dirs[i] === false || dirs[i] === 'desc'
-      const sortInt = sortFn(rowA, rowB, desc)
+      const sortFn = funcs[i];
+      const desc = dirs[i] === false || dirs[i] === 'desc';
+      const sortInt = sortFn(rowA, rowB, desc);
       if (sortInt !== 0) {
-        return desc ? -sortInt : sortInt
+        return desc ? -sortInt : sortInt;
       }
     }
-    return dirs[0] ? rowA.index - rowB.index : rowB.index - rowA.index
-  })
+    return dirs[0] ? rowA.index - rowB.index : rowB.index - rowA.index;
+  });
 }
 
 export function getRowIsSelected(row, selection) {
   if (selection[row.id]) {
-    return true
+    return true;
   }
 
   if (row.subRows && row.subRows.length) {
-    let allChildrenSelected = true
-    let someSelected = false
+    let allChildrenSelected = true;
+    let someSelected = false;
 
     row.subRows.forEach(subRow => {
       // Bail out early if we know both of these
       if (someSelected && !allChildrenSelected) {
-        return
+        return;
       }
 
       if (getRowIsSelected(subRow, selection)) {
-        someSelected = true
+        someSelected = true;
       } else {
-        allChildrenSelected = false
+        allChildrenSelected = false;
       }
-    })
-    return allChildrenSelected ? true : someSelected ? null : false
+    });
+    return allChildrenSelected ? true : someSelected ? null : false;
   }
 
-  return false
+  return false;
 }
 
 export function findExpandedDepth(expanded) {
-  let maxDepth = 0
+  let maxDepth = 0;
 
   Object.keys(expanded).forEach(id => {
-    const splitId = id.split('.')
-    maxDepth = Math.max(maxDepth, splitId.length)
-  })
+    const splitId = id.split('.');
+    maxDepth = Math.max(maxDepth, splitId.length);
+  });
 
-  return maxDepth
+  return maxDepth;
 }
 
 export function composeDecorate(...fns) {
   return (...args) => {
-    fns.filter(Boolean).forEach(fn => fn(...args))
-  }
+    fns.filter(Boolean).forEach(fn => fn(...args));
+  };
 }
 
 export function getLeafHeaders(header) {
-  const leafHeaders = []
+  const leafHeaders = [];
   const recurseHeader = header => {
     if (header.subHeaders && header.subHeaders.length) {
-      header.subHeaders.map(recurseHeader)
+      header.subHeaders.map(recurseHeader);
     }
-    leafHeaders.push(header)
-  }
-  recurseHeader(header)
-  return leafHeaders
+    leafHeaders.push(header);
+  };
+  recurseHeader(header);
+  return leafHeaders;
 }
 
 export function useLazyMemo(fn, deps = []) {
-  const ref = React.useRef({ deps: [] })
+  const ref = React.useRef({ deps: [] });
 
   return React.useCallback(() => {
     if (
       ref.current.deps.length !== deps.length ||
       deps.some((dep, i) => ref.current.deps[i] !== dep)
     ) {
-      ref.current.deps = deps
-      ref.current.result = fn()
+      ref.current.deps = deps;
+      ref.current.result = fn();
     }
 
-    return ref.current.result
-  }, [deps, fn])
+    return ref.current.result;
+  }, [deps, fn]);
 }
 
 export function composeDecorator(...fns) {
   return (...args) => {
-    fns.forEach(fn => fn(...args))
-  }
+    fns.forEach(fn => fn(...args));
+  };
 }
 
 export function composeReducer(...fns) {
   return (initial, ...args) =>
-    fns.reduce((reduced, fn) => fn(reduced, ...args), initial)
+    fns.reduce((reduced, fn) => fn(reduced, ...args), initial);
 }
 
 export function composePropsReducer(...fns) {
   return (initial, ...args) =>
-    fns.reduceRight((reduced, fn) => fn(reduced, ...args), initial)
+    fns.reduceRight((reduced, fn) => fn(reduced, ...args), initial);
 }
 
 export function applyDefaults(obj, defaults) {
-  const newObj = { ...obj }
+  const newObj = { ...obj };
 
   Object.keys(defaults).forEach(key => {
     if (typeof newObj[key] === 'undefined') {
-      newObj[key] = defaults[key]
+      newObj[key] = defaults[key];
     }
-  })
+  });
 
-  return newObj
+  return newObj;
 }
 
 export function buildHeaderGroups(columns, leafColumns, { getInstance }) {
@@ -267,24 +267,24 @@ export function buildHeaderGroups(columns, leafColumns, { getInstance }) {
   //    placeholder for non-existent level
   //    real column for existing level
 
-  let maxDepth = 0
+  let maxDepth = 0;
 
   const findMaxDepth = (columns, depth = 0) => {
-    maxDepth = Math.max(maxDepth, depth)
+    maxDepth = Math.max(maxDepth, depth);
 
     columns.forEach(column => {
       if (column.getIsVisible && !column.getIsVisible()) {
-        return
+        return;
       }
       if (column.columns) {
-        findMaxDepth(column.columns, depth + 1)
+        findMaxDepth(column.columns, depth + 1);
       }
-    }, 0)
-  }
+    }, 0);
+  };
 
-  findMaxDepth(columns)
+  findMaxDepth(columns);
 
-  const headerGroups = []
+  const headerGroups = [];
 
   const makeHeaderGroup = (headers, depth) => {
     // The header group we are creating
@@ -292,72 +292,72 @@ export function buildHeaderGroups(columns, leafColumns, { getInstance }) {
       depth,
       id: depth,
       headers: [],
-    }
+    };
 
     // The parent columns we're going to scan next
-    const parentHeaders = []
+    const parentHeaders = [];
 
     // Scan each column for parents
     headers.forEach(header => {
       // What is the latest (last) parent column?
-      let latestParentHeader = [...parentHeaders].reverse()[0]
+      let latestParentHeader = [...parentHeaders].reverse()[0];
 
       let parentHeader = {
         subHeaders: [],
-      }
+      };
 
-      const isTrueHeaderDepth = header.column.depth === headerGroup.depth
+      const isTrueHeaderDepth = header.column.depth === headerGroup.depth;
 
       if (isTrueHeaderDepth && header.column.parent) {
         // The parent header different
-        parentHeader.isPlaceholder = false
-        parentHeader.column = header.column.parent
+        parentHeader.isPlaceholder = false;
+        parentHeader.column = header.column.parent;
       } else {
         // The parent header is repeated
-        parentHeader.column = header.column
-        parentHeader.isPlaceholder = true
+        parentHeader.column = header.column;
+        parentHeader.isPlaceholder = true;
       }
 
       parentHeader.placeholderId = parentHeaders.filter(
         d => d.column === parentHeader.column
-      ).length
+      ).length;
 
       if (
         !latestParentHeader ||
         latestParentHeader.column !== parentHeader.column
       ) {
-        parentHeader.subHeaders.push(header)
-        parentHeaders.push(parentHeader)
+        parentHeader.subHeaders.push(header);
+        parentHeaders.push(parentHeader);
       } else {
-        latestParentHeader.subHeaders.push(header)
+        latestParentHeader.subHeaders.push(header);
       }
 
       if (!header.isPlaceholder) {
-        header.column.header = header
+        header.column.header = header;
       }
 
       header.id = [header.column.id, header.placeholderId]
         .filter(Boolean)
-        .join('_')
+        .join('_');
 
-      headerGroup.headers.push(header)
-    })
+      headerGroup.headers.push(header);
+    });
 
-    headerGroups.push(headerGroup)
+    headerGroups.push(headerGroup);
 
     if (depth > 0) {
-      makeHeaderGroup(parentHeaders, depth - 1)
+      makeHeaderGroup(parentHeaders, depth - 1);
     }
-  }
+  };
 
   const bottomHeaders = leafColumns.map(column => ({
     column,
     isPlaceholder: false,
-  }))
+  }));
 
-  makeHeaderGroup(bottomHeaders, maxDepth)
+  makeHeaderGroup(bottomHeaders, maxDepth);
 
-  headerGroups.reverse()
+  headerGroups.reverse();
 
   headerGroups.forEach(headerGroup => {
     headerGroup.getHeaderGroupProps = (props = {}) =>
@@ -367,7 +367,7 @@ export function buildHeaderGroups(columns, leafColumns, { getInstance }) {
           ...props,
         },
         { getInstance, headerGroup }
-      )
+      );
 
     headerGroup.getFooterGroupProps = (props = {}) =>
       getInstance().plugs.reduceFooterGroupProps(
@@ -376,58 +376,58 @@ export function buildHeaderGroups(columns, leafColumns, { getInstance }) {
           ...props,
         },
         { getInstance, headerGroup }
-      )
-  })
+      );
+  });
 
-  return headerGroups
+  return headerGroups;
 }
 
 export function recurseHeaderForSpans(header) {
-  let colSpan = 0
-  let rowSpan = 1
-  let childRowSpans = [0]
+  let colSpan = 0;
+  let rowSpan = 1;
+  let childRowSpans = [0];
 
   if (header.column.getIsVisible && header.column.getIsVisible()) {
     if (header.subHeaders && header.subHeaders.length) {
-      childRowSpans = []
+      childRowSpans = [];
       header.subHeaders.forEach(subHeader => {
-        const [count, childRowSpan] = recurseHeaderForSpans(subHeader)
-        colSpan += count
-        childRowSpans.push(childRowSpan)
-      })
+        const [count, childRowSpan] = recurseHeaderForSpans(subHeader);
+        colSpan += count;
+        childRowSpans.push(childRowSpan);
+      });
     } else {
-      colSpan = 1
+      colSpan = 1;
     }
   }
 
-  let minChildRowSpan = Math.min(...childRowSpans)
-  rowSpan = rowSpan + minChildRowSpan
+  let minChildRowSpan = Math.min(...childRowSpans);
+  rowSpan = rowSpan + minChildRowSpan;
 
-  header.colSpan = colSpan
-  header.rowSpan = rowSpan
+  header.colSpan = colSpan;
+  header.rowSpan = rowSpan;
 
-  return [colSpan, rowSpan]
+  return [colSpan, rowSpan];
 }
 
-let passiveSupported = null
+let passiveSupported = null;
 export function passiveEventSupported() {
   // memoize support to avoid adding multiple test events
-  if (typeof passiveSupported === 'boolean') return passiveSupported
+  if (typeof passiveSupported === 'boolean') return passiveSupported;
 
-  let supported = false
+  let supported = false;
   try {
     const options = {
       get passive() {
-        supported = true
-        return false
+        supported = true;
+        return false;
       },
-    }
+    };
 
-    window.addEventListener('test', null, options)
-    window.removeEventListener('test', null, options)
+    window.addEventListener('test', null, options);
+    window.removeEventListener('test', null, options);
   } catch (err) {
-    supported = false
+    supported = false;
   }
-  passiveSupported = supported
-  return passiveSupported
+  passiveSupported = supported;
+  return passiveSupported;
 }

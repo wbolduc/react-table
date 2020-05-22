@@ -1,4 +1,4 @@
-import { applyDefaults, useGetLatest } from '../utils'
+import { applyDefaults, useGetLatest } from '../utils';
 
 const defaultOptions = {
   initialState: {},
@@ -11,15 +11,15 @@ const defaultOptions = {
   filterFromChildrenUp: true,
   paginateExpandedRows: true,
   plugins: [],
-}
+};
 
 export default function useTableOptions(options, instance) {
-  const getInstance = useGetLatest(instance)
+  const getInstance = useGetLatest(instance);
 
   return instance.plugs.useReduceOptions(
     applyDefaults(options, defaultOptions),
     {
       getInstance,
     }
-  )
+  );
 }

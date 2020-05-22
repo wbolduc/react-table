@@ -1,19 +1,19 @@
-import React from 'react'
+import React from 'react';
 
-import { functionalUpdate, useGetLatest } from '../utils'
+import { functionalUpdate, useGetLatest } from '../utils';
 
 export default function useTableState(instance) {
-  const getInstance = useGetLatest(instance)
+  const getInstance = useGetLatest(instance);
   // Get the users initialState for the table
   instance.getInitialState = React.useCallback(
     () => functionalUpdate(getInstance().options.initialState),
     [getInstance]
-  )
+  );
 
   // A home for our automatic internal table state
-  const [autoState, setAutoState] = React.useState(instance.getInitialState)
+  const [autoState, setAutoState] = React.useState(instance.getInitialState);
 
-  delete instance.queuedAutoState
+  delete instance.queuedAutoState;
 
   // The computed state with any conrolled state overrides from the user
   instance.state = React.useMemo(
@@ -22,7 +22,7 @@ export default function useTableState(instance) {
       ...instance.options.state,
     }),
     [autoState, instance.options.state]
-  )
+  );
 
   // Our super cool setState function with meta and onStateChange callback support
   instance.setState = React.useCallback(
@@ -30,30 +30,30 @@ export default function useTableState(instance) {
       const {
         state: old,
         options: { onStateChange },
-      } = getInstance()
+      } = getInstance();
 
       const newState = functionalUpdate(
         updater,
         getInstance().queuedAutoState || old
-      )
+      );
 
       const [newStateNoMeta, moreMeta] = Array.isArray(newState)
         ? newState
-        : [newState, {}]
+        : [newState, {}];
 
       const resolvedState = onStateChange(newStateNoMeta, old, {
         ...meta,
         ...moreMeta,
-      })
+      });
 
       if (resolvedState && resolvedState !== old) {
         getInstance().queuedAutoState = {
           ...resolvedState,
           ...instance.options.state,
-        }
-        setAutoState(resolvedState)
+        };
+        setAutoState(resolvedState);
       }
     },
     [getInstance, instance.options.state]
-  )
+  );
 }
