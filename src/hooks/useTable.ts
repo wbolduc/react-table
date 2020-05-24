@@ -12,43 +12,45 @@ import useDataModel from './useDataModel';
 
 import { withCore } from '../plugins/withCore';
 
-//
+import { UserTableOptions, Instance, InstancePlugs, Plugin } from '../types';
 
-const plugTypes = [
-  ['useReduceOptions', composeReducer],
-  ['useInstanceAfterState', composeDecorator],
-  ['useReduceColumns', composeReducer],
-  ['useReduceAllColumns', composeReducer],
-  ['useReduceLeafColumns', composeReducer],
-  ['decorateColumn', composeDecorator],
-  ['useReduceHeaderGroups', composeReducer],
-  ['useReduceFooterGroups', composeReducer],
-  ['useReduceFlatHeaders', composeReducer],
-  ['decorateHeader', composeDecorator],
-  ['decorateRow', composeDecorator],
-  ['decorateCell', composeDecorator],
-  ['useInstanceAfterDataModel', composeDecorator],
-  ['reduceTableProps', composeReducer],
-  ['reduceTableBodyProps', composeReducer],
-  ['reduceTableHeadProps', composeReducer],
-  ['reduceTableFootProps', composeReducer],
-  ['reduceHeaderGroupProps', composeReducer],
-  ['reduceFooterGroupProps', composeReducer],
-  ['reduceHeaderProps', composeReducer],
-  ['reduceRowProps', composeReducer],
-  ['reduceCellProps', composeReducer],
+type PlugCreatorType = 'reducer' | 'decorator';
+//
+type PlugType = [keyof InstancePlugs, PlugCreatorType];
+
+const plugTypes: Array<PlugType> = [
+  ['useReduceOptions', 'reducer'],
+  ['useInstanceAfterState', 'decorator'],
+  ['useReduceColumns', 'reducer'],
+  ['useReduceAllColumns', 'reducer'],
+  ['useReduceLeafColumns', 'reducer'],
+  ['decorateColumn', 'decorator'],
+  ['useReduceHeaderGroups', 'reducer'],
+  ['useReduceFooterGroups', 'reducer'],
+  ['useReduceFlatHeaders', 'reducer'],
+  ['decorateHeader', 'decorator'],
+  ['decorateRow', 'decorator'],
+  ['decorateCell', 'decorator'],
+  ['useInstanceAfterDataModel', 'decorator'],
+  ['reduceTableProps', 'reducer'],
+  ['reduceTableBodyProps', 'reducer'],
+  ['reduceTableHeadProps', 'reducer'],
+  ['reduceTableFootProps', 'reducer'],
+  ['reduceHeaderGroupProps', 'reducer'],
+  ['reduceFooterGroupProps', 'reducer'],
+  ['reduceHeaderProps', 'reducer'],
+  ['reduceRowProps', 'reducer'],
+  ['reduceCellProps', 'reducer'],
 ];
 
-export const useTable = options => {
-  const instanceRef = React.useRef();
+export const useTable = (options: UserTableOptions = {}) => {
+  const instanceRef = React.useRef({} as Instance);
 
-  // Create and keep track of the table instance
-  if (!instanceRef.current) {
-    instanceRef.current = {};
-  }
   const instance = instanceRef.current;
 
-  const userPlugins = options.plugins.filter(Boolean);
+  const { plugins = [] } = options;
+
+  const userPlugins = plugins.filter(Boolean);
 
   userPlugins.sort((a, b) => {
     if (a.after.includes(b.name) || a.after.length > b.after.length) {
@@ -60,18 +62,14 @@ export const useTable = options => {
     return 0;
   });
 
-  const allPlugins = [withCore, ...userPlugins];
+  const allPlugins: Array<Plugin> = [withCore, ...userPlugins];
 
-  instance.plugs = {};
+  instance.plugs = {} as InstancePlugs;
 
   if (process.env.NODE_ENV !== 'production') {
     allPlugins.forEach(plugin => {
-      Object.keys(plugin).forEach(plugName => {
-        if (
-          plugName !== 'name' &&
-          plugName !== 'after' &&
-          !plugTypes.find(d => d[0] === plugName)
-        ) {
+      Object.keys(plugin.plugs).forEach(plugName => {
+        if (!plugTypes.find(d => d[0] === plugName)) {
           throw new Error(
             `Unknown plug "${plugName}" found in plugin "${plugin.name}"`
           );
@@ -80,14 +78,26 @@ export const useTable = options => {
     });
   }
 
-  plugTypes.forEach(([plugType, compositionFn]) => {
+  plugTypes.forEach(([plugType, plugCreatorType]) => {
     const pluginPlugs = allPlugins
       // Get the info necessary to sort
-      .map(plugin => ({
-        name: plugin.name,
-        plug: plugin[plugType],
-        after: plugin[plugType]?.after || [],
-      }))
+      .map(plugin => {
+        const plug = plugin.plugs[plugType];
+
+        if ('plug' in plug) {
+          return {
+            name: plugin.name,
+            plug: plug.plug,
+            after: plug.after,
+          };
+        }
+
+        return {
+          name: plugin.name,
+          plug: plug,
+          after: [],
+        };
+      })
       // remove empty
       .filter(d => d.plug)
       // sort for optional after deps
@@ -103,11 +113,12 @@ export const useTable = options => {
       // map back to the plug functions
       .map(d => d.plug);
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    instance.plugs[plugType] = React.useCallback(
-      compositionFn(...pluginPlugs),
-      pluginPlugs
-    );
+    const plugFn =
+      plugCreatorType === 'reducer'
+        ? composeReducer(pluginPlugs)
+        : composeDecorator(pluginPlugs);
+
+    instance.plugs[plugType] = React.useCallback(plugFn, pluginPlugs);
   });
 
   // Apply the defaults to our options
@@ -115,13 +126,13 @@ export const useTable = options => {
 
   useTableState(instance);
 
-  instance.plugs.useInstanceAfterState(instance);
+  // instance.plugs.useInstanceAfterState(instance);
 
   useColumns(instance);
   useHeadersAndFooters(instance);
   useDataModel(instance);
 
-  instance.plugs.useInstanceAfterDataModel(instance);
+  // instance.plugs.useInstanceAfterDataModel(instance);
 
   return instance;
 };

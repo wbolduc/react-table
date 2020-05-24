@@ -7,7 +7,7 @@ export function functionalUpdate(updater, old) {
 export function noop() {}
 
 export function useGetLatest(obj) {
-  const ref = React.useRef();
+  const ref = React.useRef(obj);
   ref.current = obj;
 
   return React.useCallback(() => ref.current, []);
@@ -232,21 +232,21 @@ export function useLazyMemo(fn, deps = []) {
   }, [deps, fn]);
 }
 
-export function composeDecorator(...fns) {
-  return (...args) => {
-    fns.forEach(fn => fn(...args));
+export function composeDecorator(fns: Array<Function>) {
+  return <T, T2>(decorated: T, meta: T2) => {
+    fns.forEach(fn => fn(decorated, meta));
   };
 }
 
-export function composeReducer(...fns) {
-  return (initial, ...args) =>
-    fns.reduce((reduced, fn) => fn(reduced, ...args), initial);
+export function composeReducer(fns: Array<Function>) {
+  return <T, T2>(initial: T, meta: T2) =>
+    fns.reduce((reduced, fn) => fn(reduced, meta), initial);
 }
 
-export function composePropsReducer(...fns) {
-  return (initial, ...args) =>
-    fns.reduceRight((reduced, fn) => fn(reduced, ...args), initial);
-}
+// export function composePropsReducer(fns) {
+//   return (initial, ...args) =>
+//     fns.reduceRight((reduced, fn) => fn(reduced, ...args), initial);
+// }
 
 export function applyDefaults(obj, defaults) {
   const newObj = { ...obj };

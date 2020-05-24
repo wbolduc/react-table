@@ -2,14 +2,18 @@ import React from 'react';
 
 import { useGetLatest, makeRenderer } from '../utils';
 
-export const withCore = {
+import { Plugin } from '../types';
+
+export const withCore: Plugin = {
   name: 'withCore',
   after: [],
-  useInstanceAfterState,
-  decorateHeader,
-  decorateRow,
-  decorateCell,
-  useInstanceAfterDataModel,
+  plugs: {
+    useInstanceAfterState,
+    decorateHeader,
+    decorateRow,
+    decorateCell,
+    useInstanceAfterDataModel,
+  },
 };
 
 function useInstanceAfterState(instance) {
