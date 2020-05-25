@@ -12,35 +12,42 @@ import useDataModel from './useDataModel';
 
 import { withCore } from '../plugins/withCore';
 
-import { UserTableOptions, Instance, InstancePlugs, Plugin } from '../types';
+import {
+  UserTableOptions,
+  Instance,
+  InstancePlugs,
+  Plugin,
+  PlugName,
+} from '../types';
 
-type PlugCreatorType = 'reducer' | 'decorator';
 //
-type PlugType = [keyof InstancePlugs, PlugCreatorType];
 
-const plugTypes: Array<PlugType> = [
-  ['useReduceOptions', 'reducer'],
-  ['useInstanceAfterState', 'decorator'],
-  ['useReduceColumns', 'reducer'],
-  ['useReduceAllColumns', 'reducer'],
-  ['useReduceLeafColumns', 'reducer'],
-  ['decorateColumn', 'decorator'],
-  ['useReduceHeaderGroups', 'reducer'],
-  ['useReduceFooterGroups', 'reducer'],
-  ['useReduceFlatHeaders', 'reducer'],
-  ['decorateHeader', 'decorator'],
-  ['decorateRow', 'decorator'],
-  ['decorateCell', 'decorator'],
-  ['useInstanceAfterDataModel', 'decorator'],
-  ['reduceTableProps', 'reducer'],
-  ['reduceTableBodyProps', 'reducer'],
-  ['reduceTableHeadProps', 'reducer'],
-  ['reduceTableFootProps', 'reducer'],
-  ['reduceHeaderGroupProps', 'reducer'],
-  ['reduceFooterGroupProps', 'reducer'],
-  ['reduceHeaderProps', 'reducer'],
-  ['reduceRowProps', 'reducer'],
-  ['reduceCellProps', 'reducer'],
+const plugTypes: Array<[
+  PlugName,
+  typeof composeReducer | typeof composeDecorator
+]> = [
+  ['useReduceOptions', composeReducer],
+  ['useInstanceAfterState', composeDecorator],
+  ['useReduceColumns', composeReducer],
+  ['useReduceAllColumns', composeReducer],
+  ['useReduceLeafColumns', composeReducer],
+  ['decorateColumn', composeDecorator],
+  ['useReduceHeaderGroups', composeReducer],
+  ['useReduceFooterGroups', composeReducer],
+  ['useReduceFlatHeaders', composeReducer],
+  ['decorateHeader', composeDecorator],
+  ['decorateRow', composeDecorator],
+  ['decorateCell', composeDecorator],
+  ['useInstanceAfterDataModel', composeDecorator],
+  ['reduceTableProps', composeReducer],
+  ['reduceTableBodyProps', composeReducer],
+  ['reduceTableHeadProps', composeReducer],
+  ['reduceTableFootProps', composeReducer],
+  ['reduceHeaderGroupProps', composeReducer],
+  ['reduceFooterGroupProps', composeReducer],
+  ['reduceHeaderProps', composeReducer],
+  ['reduceRowProps', composeReducer],
+  ['reduceCellProps', composeReducer],
 ];
 
 export const useTable = (options: UserTableOptions = {}) => {
@@ -78,11 +85,11 @@ export const useTable = (options: UserTableOptions = {}) => {
     });
   }
 
-  plugTypes.forEach(([plugType, plugCreatorType]) => {
+  plugTypes.forEach(([plugType, plugCreator]) => {
     const pluginPlugs = allPlugins
       // Get the info necessary to sort
       .map(plugin => {
-        const plug = plugin.plugs[plugType];
+        const plug = plugin.plugs[plugType as keyof InstancePlugs];
 
         if ('plug' in plug) {
           return {
@@ -113,12 +120,10 @@ export const useTable = (options: UserTableOptions = {}) => {
       // map back to the plug functions
       .map(d => d.plug);
 
-    const plugFn =
-      plugCreatorType === 'reducer'
-        ? composeReducer(pluginPlugs)
-        : composeDecorator(pluginPlugs);
-
-    instance.plugs[plugType] = React.useCallback(plugFn, pluginPlugs);
+    instance.plugs[plugType as keyof InstancePlugs] = React.useCallback(
+      plugCreator(...pluginPlugs),
+      pluginPlugs
+    );
   });
 
   // Apply the defaults to our options

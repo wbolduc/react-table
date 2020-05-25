@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { Props } from 'react';
 
-export function functionalUpdate(updater, old) {
+import { Reducer, Decorator, Instance } from '../types';
+
+type GetInstance = () => Instance;
+type Renderable = React.ReactNode | React.Component | React.ExoticComponent;
+
+export function functionalUpdate<T>(updater: any | ((old: T) => T), old: T) {
   return typeof updater === 'function' ? updater(old) : updater;
 }
 
 export function noop() {}
 
-export function useGetLatest(obj) {
+export function useGetLatest<T>(obj: T) {
   const ref = React.useRef(obj);
   ref.current = obj;
 
@@ -17,7 +22,10 @@ export function useGetLatest(obj) {
 export const safeUseLayoutEffect =
   typeof document !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
-export function useMountedLayoutEffect(fn, deps) {
+export function useMountedLayoutEffect<T extends Function>(
+  fn: T,
+  deps?: Array<any>
+) {
   const mountedRef = React.useRef(false);
 
   safeUseLayoutEffect(() => {
@@ -29,8 +37,8 @@ export function useMountedLayoutEffect(fn, deps) {
   }, deps);
 }
 
-export function makeRenderer(getInstance, meta = {}) {
-  return (Comp, userProps = {}) => {
+export function makeRenderer(getInstance: GetInstance, meta = {}) {
+  return (Comp: Renderable, userProps = {}) => {
     return flexRender(Comp, {
       tableInstance: getInstance(),
       ...meta,
@@ -39,19 +47,19 @@ export function makeRenderer(getInstance, meta = {}) {
   };
 }
 
-export function flexRender(Comp, props) {
+export function flexRender(Comp: Renderable, props: any) {
   return isReactComponent(Comp) ? <Comp {...props} /> : Comp;
 }
 
-function isReactComponent(component) {
-  return (
+function isReactComponent(component: Renderable): boolean {
+  return Boolean(
     isClassComponent(component) ||
-    typeof component === 'function' ||
-    isExoticComponent(component)
+      typeof component === 'function' ||
+      isExoticComponent(component)
   );
 }
 
-function isClassComponent(component) {
+function isClassComponent(component: Renderable): boolean {
   return (
     typeof component === 'function' &&
     (() => {
@@ -61,11 +69,14 @@ function isClassComponent(component) {
   );
 }
 
-function isExoticComponent(component) {
-  return (
-    typeof component === 'object' &&
-    typeof component.$$typeof === 'symbol' &&
-    ['react.memo', 'react.forward_ref'].includes(component.$$typeof.description)
+function isExoticComponent(component: React.ExoticComponent): boolean {
+  return Boolean(
+    component &&
+      typeof component.$$typeof === 'symbol' &&
+      component.$$typeof.description &&
+      ['react.memo', 'react.forward_ref'].includes(
+        component.$$typeof.description
+      )
   );
 }
 
@@ -232,15 +243,29 @@ export function useLazyMemo(fn, deps = []) {
   }, [deps, fn]);
 }
 
-export function composeDecorator(fns: Array<Function>) {
-  return <T, T2>(decorated: T, meta: T2) => {
-    fns.forEach(fn => fn(decorated, meta));
+type arguments<TInitial, TArgs> = ((
+  state: TInitial,
+  ...args: TArgs[]
+) => TInitial)[];
+
+export function composeReducer<TState, TArgs>(
+  ...fns: arguments<TState, TArgs>
+) {
+  return (initial: TState, ...args: TArgs[]) => {
+    return fns.reduce((prev, nextFn) => {
+      return nextFn(prev, ...args);
+    }, initial);
   };
 }
 
-export function composeReducer(fns: Array<Function>) {
-  return <T, T2>(initial: T, meta: T2) =>
-    fns.reduce((reduced, fn) => fn(reduced, meta), initial);
+export function composeDecorator<TState, TArgs>(
+  ...fns: arguments<TState, TArgs>
+) {
+  return (initial: TState, ...args: TArgs[]) => {
+    fns.forEach(nextFn => {
+      return nextFn(initial, ...args);
+    });
+  };
 }
 
 // export function composePropsReducer(fns) {

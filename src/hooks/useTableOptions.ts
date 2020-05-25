@@ -1,9 +1,11 @@
 import { applyDefaults, useGetLatest } from '../utils';
 
+import { State } from '../types';
+
 const defaultOptions = {
   initialState: {},
   state: {},
-  onStateChange: d => d,
+  onStateChange: (d: State) => d,
   getSubRows: (row, index) => row.subRows || [],
   getRowId: (row, index, parent) =>
     `${parent ? [parent.id, index].join('.') : index}`,

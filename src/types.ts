@@ -1,30 +1,32 @@
-interface PlugMeta {}
+interface PlugMeta {
+  [key: string]: any;
+}
 
-type PlugReducer<T> = (input: T, meta: PlugMeta) => T;
-type PlugDecorator<T> = (input: T, meta: PlugMeta) => void;
+export type Reducer = <T, U extends any[]>(initial: T, ...args: U) => T;
+export type Decorator = <T, U extends any[]>(initial: T, ...args: U) => void;
 
-export type UseReduceOptions = PlugReducer<Options>;
-export type UseInstanceAfterState = PlugReducer<Instance>;
-export type UseReduceColumns = PlugReducer<Array<Column>>;
-export type UseReduceAllColumns = PlugReducer<Array<Column>>;
-export type UseReduceLeafColumns = PlugReducer<Array<Column>>;
-export type DecorateColumn = PlugDecorator<Column>;
-export type UseReduceHeaderGroups = PlugReducer<Array<HeaderGroup>>;
-export type UseReduceFooterGroups = PlugReducer<Array<FooterGroup>>;
-export type UseReduceFlatHeaders = PlugReducer<Array<Header>>;
-export type DecorateHeader = PlugDecorator<Header>;
-export type DecorateRow = PlugDecorator<Row>;
-export type DecorateCell = PlugDecorator<Cell>;
-export type UseInstanceAfterDataModel = PlugReducer<Instance>;
-export type ReduceTableProps = PlugReducer<TableProps>;
-export type ReduceTableBodyProps = PlugReducer<TableBodyProps>;
-export type ReduceTableHeadProps = PlugReducer<TableHeadProps>;
-export type ReduceTableFootProps = PlugReducer<TableFootProps>;
-export type ReduceHeaderGroupProps = PlugReducer<HeaderGroupProps>;
-export type ReduceFooterGroupProps = PlugReducer<FooterGroupProps>;
-export type ReduceHeaderProps = PlugReducer<HeaderProps>;
-export type ReduceRowProps = PlugReducer<RowProps>;
-export type ReduceCellProps = PlugReducer<CellProps>;
+export type UseReduceOptions = Reducer;
+export type UseInstanceAfterState = Decorator;
+export type UseReduceColumns = Reducer; // Array<Column>;
+export type UseReduceAllColumns = Reducer; // Array<Column>;
+export type UseReduceLeafColumns = Reducer; // Array<Column>;
+export type DecorateColumn = Decorator; // Column;
+export type UseReduceHeaderGroups = Reducer; // Array<HeaderGroup>;
+export type UseReduceFooterGroups = Reducer; // Array<FooterGroup>;
+export type UseReduceFlatHeaders = Reducer; // Array<Header>;
+export type DecorateHeader = Decorator; // Header;
+export type DecorateRow = Decorator; // Row;
+export type DecorateCell = Decorator; // Cell;
+export type UseInstanceAfterDataModel = Decorator; // Instance;
+export type ReduceTableProps = Reducer; // TableProps;
+export type ReduceTableBodyProps = Reducer; // TableBodyProps;
+export type ReduceTableHeadProps = Reducer; // TableHeadProps;
+export type ReduceTableFootProps = Reducer; // TableFootProps;
+export type ReduceHeaderGroupProps = Reducer; // HeaderGroupProps;
+export type ReduceFooterGroupProps = Reducer; // FooterGroupProps;
+export type ReduceHeaderProps = Reducer; // HeaderProps;
+export type ReduceRowProps = Reducer; // RowProps;
+export type ReduceCellProps = Reducer; // CellProps;
 
 type AfterList = Array<string>;
 
@@ -34,6 +36,8 @@ export interface PlugObj<T> {
 }
 
 export type PluginPlug<T> = PlugObj<T> | T;
+
+export type PlugName = keyof InstancePlugs;
 
 export interface InstancePlugs {
   useReduceOptions: UseReduceOptions;
@@ -100,7 +104,10 @@ export interface UserTableOptions {
 export interface Instance {
   plugs: InstancePlugs;
   options: Options;
+  state: State;
 }
+
+export interface State {}
 
 export interface Options {}
 export interface Column {}
