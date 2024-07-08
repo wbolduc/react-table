@@ -122,7 +122,8 @@ export const createRow = <TData extends RowData>(
 
       row._valuesCache[columnId] = column.accessorFn(
         row.original as TData,
-        rowIndex
+        rowIndex,
+        {table, row}
       )
 
       return row._valuesCache[columnId] as any
@@ -145,7 +146,11 @@ export const createRow = <TData extends RowData>(
 
       row._uniqueValuesCache[columnId] = column.columnDef.getUniqueValues(
         row.original as TData,
-        rowIndex
+        rowIndex,
+        {
+          table,
+          row,
+        }
       )
 
       return row._uniqueValuesCache[columnId] as any

@@ -226,7 +226,11 @@ export interface RowModel<TData extends RowData> {
 
 export type AccessorFn<TData extends RowData, TValue = unknown> = (
   originalRow: TData,
-  index: number
+  index: number,
+  ctx: {
+    row: CoreRow<TData>
+    table: Table<TData>
+  }
 ) => TValue
 
 export type ColumnDefTemplate<TProps extends object> =
